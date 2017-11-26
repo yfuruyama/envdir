@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"syscall"
 )
 
@@ -60,9 +61,9 @@ func (e *Envdir) Run(args []string) int {
 		if int64(n) != fsize {
 			e.fatal(fmt.Sprintf("invalid file read size, got: %s, expected: %s, \n", n, fsize))
 		}
-		// TODO: remove until newline
 
-		env = append(env, fileName+"="+string(data))
+		v := strings.TrimSuffix(string(data), "\n")
+		env = append(env, fileName+"="+v)
 	}
 
 	cmd := exec.Command(child, childArgs...)
