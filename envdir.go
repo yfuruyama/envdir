@@ -66,8 +66,9 @@ func (e *Envdir) Run(args []string) int {
 	}
 
 	cmd := exec.Command(child, childArgs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// TODO: how about Stdin?
+	cmd.Stdout = e.outStream
+	cmd.Stderr = e.errStream
 	cmd.Env = env
 	err = cmd.Run()
 	if err != nil {
