@@ -35,7 +35,17 @@ func TestEnvdir_success(t *testing.T) {
 	})
 
 	t.Run("the end of space and tab in env value is removed", func(t *testing.T) {
-		// TODO
+		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
+		e := &Envdir{outStream: outStream, errStream: errStream}
+
+		status := e.Run([]string{"envdir", "testenv/space", "printenv", "FOO"})
+		if status != 0 {
+			t.Errorf("expected %d, but got %d: out=%s, err=%s", 0, status, outStream, errStream)
+		}
+
+		if outStream.String() != "hello world\n" {
+			t.Errorf("expected %q, but got %q", "hello world\n", outStream.String())
+		}
 	})
 
 	t.Run("characters after newline are removed", func(t *testing.T) {

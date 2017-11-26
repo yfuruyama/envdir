@@ -73,6 +73,7 @@ func (e *Envdir) Run(args []string) int {
 
 		v := strings.SplitN(string(data), "\n", 2)[0]
 		v = strings.Replace(v, "\x00", "\n", -1) // replace NULL character with newline
+		v = strings.TrimRight(v, " \t")          // trim trailing space and tab
 
 		env = append(env, fileName+"="+v)
 	}
