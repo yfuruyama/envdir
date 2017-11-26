@@ -85,9 +85,9 @@ func TestEnvdir_success(t *testing.T) {
 			t.Errorf("expected %d, but got %d", 1, status)
 		}
 
-		// if outStream.String() != "" {
-		// t.Errorf("expected %q, but got %q", "", outStream.String())
-		// }
+		if outStream.String() != "" {
+			t.Errorf("expected %q, but got %q", "", outStream.String())
+		}
 	})
 }
 
