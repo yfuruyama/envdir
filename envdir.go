@@ -71,7 +71,7 @@ func (e *Envdir) Run(args []string) int {
 			return e.fatal(fmt.Sprintf("invalid file read size, got: %s, expected: %s, \n", n, fsize))
 		}
 
-		v := strings.TrimSuffix(string(data), "\n")
+		v := strings.SplitN(string(data), "\n", 2)[0]
 		v = strings.Replace(v, "\x00", "\n", -1) // replace NULL character with newline
 
 		env = append(env, fileName+"="+v)

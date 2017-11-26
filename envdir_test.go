@@ -39,14 +39,24 @@ func TestEnvdir_success(t *testing.T) {
 	})
 
 	t.Run("characters after newline are removed", func(t *testing.T) {
-		// TODO
+		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
+		e := &Envdir{outStream: outStream, errStream: errStream}
+
+		status := e.Run([]string{"envdir", "testenv/multiline", "printenv", "FOO"})
+		if status != 0 {
+			t.Errorf("expected %d, but got %d: out=%s, err=%s", 0, status, outStream, errStream)
+		}
+
+		if outStream.String() != "multi\n" {
+			t.Errorf("expected %q, but got %q", "multi\n", outStream.String())
+		}
 	})
 
 	t.Run("filename beginning with '.' are ignored", func(t *testing.T) {
 		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 		e := &Envdir{outStream: outStream, errStream: errStream}
 
-		status := e.Run([]string{"envdir", "testenv/dot_file", "printenv", ".BAR"})
+		status := e.Run([]string{"envdir", "testenv/dotfile", "printenv", ".BAR"})
 		if status != 1 { // printenv set exit status to 1 if env not found
 			t.Errorf("expected %d, but got %d", 1, status)
 		}
@@ -66,7 +76,7 @@ func TestEnvdir_success(t *testing.T) {
 		}
 
 		if outStream.String() != "hello\nworld\n" {
-			t.Errorf("expected %q, but got %q", "", outStream.String())
+			t.Errorf("expected %q, but got %q", "hello\nworld\n", outStream.String())
 		}
 	})
 }
@@ -91,7 +101,7 @@ func TestEnvdir_error(t *testing.T) {
 		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 		e := &Envdir{outStream: outStream, errStream: errStream}
 
-		status := e.Run([]string{"envdir", "testenv/inner_dir", "printenv", "FOO"})
+		status := e.Run([]string{"envdir", "testenv/dir", "printenv", "FOO"})
 		if status != 111 {
 			t.Errorf("expected %d, but got %d", 111, status)
 		}
