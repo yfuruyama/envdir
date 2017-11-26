@@ -44,9 +44,13 @@ func (e *Envdir) Run(args []string) int {
 		if fileInfo.IsDir() {
 			return e.fatal(fmt.Sprintf("%s is not a file, but a directory\n", fileInfo.Name()))
 		}
-		fileName := fileInfo.Name()
-		filePath := path.Join(dir, fileName)
 
+		fileName := fileInfo.Name()
+		if strings.HasPrefix(fileName, ".") {
+			continue
+		}
+
+		filePath := path.Join(dir, fileName)
 		file, err := os.Open(filePath)
 		if err != nil {
 			return e.fatal(fmt.Sprintf("%s\n", err.Error()))

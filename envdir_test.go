@@ -10,12 +10,12 @@ func TestEnvdir_success(t *testing.T) {
 		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 		e := &Envdir{outStream: outStream, errStream: errStream}
 
-		status := e.Run([]string{"envdir", "testenv/simple", "sh", "-c", "printf %s $FOO"})
+		status := e.Run([]string{"envdir", "testenv/simple", "printenv", "FOO"})
 		if status != 0 {
 			t.Errorf("expected %d, but got %d", 0, status)
 		}
 
-		if outStream.String() != "foo" {
+		if outStream.String() != "foo\n" {
 			t.Errorf("expected %q, but got %q", "foo", outStream.String())
 		}
 	})
@@ -34,11 +34,29 @@ func TestEnvdir_success(t *testing.T) {
 		// }
 	})
 
-	t.Run("the end of space in env value is removed", func(t *testing.T) {
+	t.Run("the end of space and tab in env value is removed", func(t *testing.T) {
 		// TODO
 	})
 
-	t.Run("the end of tab in env value is removed", func(t *testing.T) {
+	t.Run("characters after newline are removed", func(t *testing.T) {
+		// TODO
+	})
+
+	t.Run("filename beginning with '.' are ignored", func(t *testing.T) {
+		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
+		e := &Envdir{outStream: outStream, errStream: errStream}
+
+		status := e.Run([]string{"envdir", "testenv/include_dot_file", "printenv", ".BAR"})
+		if status != 1 { // printenv set exit status to 1 if env not found
+			t.Errorf("expected %d, but got %d", 1, status)
+		}
+
+		if outStream.String() != "" {
+			t.Errorf("expected %q, but got %q", "", outStream.String())
+		}
+	})
+
+	t.Run("embedded nulls are converted to newlines", func(t *testing.T) {
 		// TODO
 	})
 }
@@ -63,7 +81,7 @@ func TestEnvdir_error(t *testing.T) {
 		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 		e := &Envdir{outStream: outStream, errStream: errStream}
 
-		status := e.Run([]string{"envdir", "testenv/include_dir", "sh", "-c", "printf %s $FOO"})
+		status := e.Run([]string{"envdir", "testenv/include_dir", "printenv", "FOO"})
 		if status != 111 {
 			t.Errorf("expected %d, but got %d", 111, status)
 		}
