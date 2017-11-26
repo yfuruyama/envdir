@@ -36,30 +36,35 @@ func (e *Envdir) Run(args []string) int {
 
 	fileInfos, err := ioutil.ReadDir(dir)
 	if err != nil {
-		e.fatal(fmt.Sprintf("%s\n", err.Error()))
+		return e.fatal(fmt.Sprintf("%s\n", err.Error()))
 	}
 
 	env := os.Environ()
 	for _, fileInfo := range fileInfos {
 		if fileInfo.IsDir() {
-			continue // TODO
+			return e.fatal(fmt.Sprintf("%s is not a file, but a directory\n", fileInfo.Name()))
 		}
 		fileName := fileInfo.Name()
 		filePath := path.Join(dir, fileName)
 
 		file, err := os.Open(filePath)
 		if err != nil {
-			e.fatal(fmt.Sprintf("%s\n", err.Error()))
+			return e.fatal(fmt.Sprintf("%s\n", err.Error()))
 		}
 
 		fsize := fileInfo.Size()
+		if fsize == 0 {
+			// TODO: remove element
+			continue
+		}
+
 		data := make([]byte, fsize)
 		n, err := file.Read(data)
 		if err != nil {
-			e.fatal(fmt.Sprintf("%s\n", err.Error()))
+			return e.fatal(fmt.Sprintf("%s\n", err.Error()))
 		}
 		if int64(n) != fsize {
-			e.fatal(fmt.Sprintf("invalid file read size, got: %s, expected: %s, \n", n, fsize))
+			return e.fatal(fmt.Sprintf("invalid file read size, got: %s, expected: %s, \n", n, fsize))
 		}
 
 		v := strings.TrimSuffix(string(data), "\n")
@@ -78,7 +83,7 @@ func (e *Envdir) Run(args []string) int {
 				return status.ExitStatus()
 			}
 		} else {
-			e.fatal(fmt.Sprintf("%s\n", err.Error()))
+			return e.fatal(fmt.Sprintf("%s\n", err.Error()))
 		}
 	}
 
