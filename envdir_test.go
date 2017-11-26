@@ -46,7 +46,7 @@ func TestEnvdir_success(t *testing.T) {
 		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 		e := &Envdir{outStream: outStream, errStream: errStream}
 
-		status := e.Run([]string{"envdir", "testenv/include_dot_file", "printenv", ".BAR"})
+		status := e.Run([]string{"envdir", "testenv/dot_file", "printenv", ".BAR"})
 		if status != 1 { // printenv set exit status to 1 if env not found
 			t.Errorf("expected %d, but got %d", 1, status)
 		}
@@ -57,7 +57,17 @@ func TestEnvdir_success(t *testing.T) {
 	})
 
 	t.Run("embedded nulls are converted to newlines", func(t *testing.T) {
-		// TODO
+		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
+		e := &Envdir{outStream: outStream, errStream: errStream}
+
+		status := e.Run([]string{"envdir", "testenv/null", "printenv", "HELLO"})
+		if status != 0 {
+			t.Errorf("expected %d, but got %d: out=%s, err=%s", 0, status, outStream, errStream)
+		}
+
+		if outStream.String() != "hello\nworld\n" {
+			t.Errorf("expected %q, but got %q", "", outStream.String())
+		}
 	})
 }
 
@@ -81,7 +91,7 @@ func TestEnvdir_error(t *testing.T) {
 		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 		e := &Envdir{outStream: outStream, errStream: errStream}
 
-		status := e.Run([]string{"envdir", "testenv/include_dir", "printenv", "FOO"})
+		status := e.Run([]string{"envdir", "testenv/inner_dir", "printenv", "FOO"})
 		if status != 111 {
 			t.Errorf("expected %d, but got %d", 111, status)
 		}

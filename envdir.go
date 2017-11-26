@@ -72,6 +72,8 @@ func (e *Envdir) Run(args []string) int {
 		}
 
 		v := strings.TrimSuffix(string(data), "\n")
+		v = strings.Replace(v, "\x00", "\n", -1) // replace NULL character with newline
+
 		env = append(env, fileName+"="+v)
 	}
 
