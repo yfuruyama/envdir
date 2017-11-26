@@ -1,6 +1,5 @@
-envdir
+envdir [![CircleCI](https://circleci.com/gh/addsict/envdir.svg?style=svg)](https://circleci.com/gh/addsict/envdir)
 ===
-[![CircleCI](https://circleci.com/gh/addsict/envdir.svg?style=svg)](https://circleci.com/gh/addsict/envdir)
 
 Port of [daemontools' envdir](https://cr.yp.to/daemontools/envdir.html) in Golang.
 
