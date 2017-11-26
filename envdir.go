@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -9,23 +10,32 @@ import (
 	"syscall"
 )
 
-func fatal(msg string) {
-	fmt.Fprint(os.Stderr, msg)
-	os.Exit(111)
+const (
+	ExitCodeOk    = 0
+	ExitCodeFatal = 111
+)
+
+type Envdir struct {
+	outStream, errStream io.Writer
 }
 
-func main() {
-	if len(os.Args) < 3 {
-		fatal("usage: envdir dir command\n")
+func (e *Envdir) fatal(msg string) int {
+	fmt.Fprint(e.errStream, msg)
+	return ExitCodeFatal
+}
+
+func (e *Envdir) Run(args []string) int {
+	if len(args) < 3 {
+		return e.fatal("usage: envdir dir command\n")
 	}
 
-	dir := os.Args[1]
-	child := os.Args[2]
-	childArgs := os.Args[3:]
+	dir := args[1]
+	child := args[2]
+	childArgs := args[3:]
 
 	fileInfos, err := ioutil.ReadDir(dir)
 	if err != nil {
-		fatal(fmt.Sprintf("%s\n", err.Error()))
+		e.fatal(fmt.Sprintf("%s\n", err.Error()))
 	}
 
 	env := os.Environ()
@@ -38,17 +48,17 @@ func main() {
 
 		file, err := os.Open(filePath)
 		if err != nil {
-			fatal(fmt.Sprintf("%s\n", err.Error()))
+			e.fatal(fmt.Sprintf("%s\n", err.Error()))
 		}
 
 		fsize := fileInfo.Size()
 		data := make([]byte, fsize)
 		n, err := file.Read(data)
 		if err != nil {
-			fatal(fmt.Sprintf("%s\n", err.Error()))
+			e.fatal(fmt.Sprintf("%s\n", err.Error()))
 		}
 		if int64(n) != fsize {
-			fatal(fmt.Sprintf("invalid file read size, got: %s, expected: %s, \n", n, fsize))
+			e.fatal(fmt.Sprintf("invalid file read size, got: %s, expected: %s, \n", n, fsize))
 		}
 		// TODO: remove until newline
 
@@ -63,10 +73,12 @@ func main() {
 	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				os.Exit(status.ExitStatus())
+				return status.ExitStatus()
 			}
 		} else {
-			fatal(fmt.Sprintf("%s\n", err.Error()))
+			e.fatal(fmt.Sprintf("%s\n", err.Error()))
 		}
 	}
+
+	return ExitCodeOk
 }
