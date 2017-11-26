@@ -20,20 +20,6 @@ func TestEnvdir_success(t *testing.T) {
 		}
 	})
 
-	t.Run("env file size is 0, so remove that env", func(t *testing.T) {
-		// outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
-		// e := &Envdir{outStream: outStream, errStream: errStream}
-
-		// status := e.Run([]string{"envdir", "testenv", "sh", "-c", "printf %s $NO_VALUE"})
-		// if status != 0 {
-		// t.Errorf("expected %d, but got %d", 0, status)
-		// }
-
-		// if outStream.String() != "" {
-		// t.Errorf("expected %q, but got %q", "", outStream.String())
-		// }
-	})
-
 	t.Run("the end of space and tab in env value is removed", func(t *testing.T) {
 		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
 		e := &Envdir{outStream: outStream, errStream: errStream}
@@ -88,6 +74,20 @@ func TestEnvdir_success(t *testing.T) {
 		if outStream.String() != "hello\nworld\n" {
 			t.Errorf("expected %q, but got %q", "hello\nworld\n", outStream.String())
 		}
+	})
+
+	t.Run("env file size is 0, so remove that env", func(t *testing.T) {
+		outStream, errStream := new(bytes.Buffer), new(bytes.Buffer)
+		e := &Envdir{outStream: outStream, errStream: errStream, env: []string{"EMPTY=not empty"}}
+
+		status := e.Run([]string{"envdir", "testenv/empty", "printenv", "EMPTY"})
+		if status != 1 {
+			t.Errorf("expected %d, but got %d", 1, status)
+		}
+
+		// if outStream.String() != "" {
+		// t.Errorf("expected %q, but got %q", "", outStream.String())
+		// }
 	})
 }
 

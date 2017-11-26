@@ -18,6 +18,7 @@ const (
 
 type Envdir struct {
 	outStream, errStream io.Writer
+	env                  []string
 }
 
 func (e *Envdir) fatal(msg string) int {
@@ -39,7 +40,6 @@ func (e *Envdir) Run(args []string) int {
 		return e.fatal(fmt.Sprintf("%s\n", err.Error()))
 	}
 
-	env := os.Environ()
 	for _, fileInfo := range fileInfos {
 		if fileInfo.IsDir() {
 			return e.fatal(fmt.Sprintf("%s is not a file, but a directory\n", fileInfo.Name()))
@@ -58,7 +58,13 @@ func (e *Envdir) Run(args []string) int {
 
 		fsize := fileInfo.Size()
 		if fsize == 0 {
-			// TODO: remove element
+			for i, elem := range e.env {
+				if strings.HasPrefix(elem, fileName+"=") {
+					// remove env
+					e.env = append(e.env[:i], e.env[i+1:]...)
+					break
+				}
+			}
 			continue
 		}
 
@@ -75,14 +81,13 @@ func (e *Envdir) Run(args []string) int {
 		v = strings.Replace(v, "\x00", "\n", -1) // replace NULL character with newline
 		v = strings.TrimRight(v, " \t")          // trim trailing space and tab
 
-		env = append(env, fileName+"="+v)
+		e.env = append(e.env, fileName+"="+v)
 	}
 
 	cmd := exec.Command(child, childArgs...)
-	// TODO: how about Stdin?
 	cmd.Stdout = e.outStream
 	cmd.Stderr = e.errStream
-	cmd.Env = env
+	cmd.Env = e.env
 	err = cmd.Run()
 	if err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
